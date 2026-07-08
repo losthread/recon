@@ -1,10 +1,8 @@
-# configs and packaging
-
 [project]
 name = "recon_losthread"
 version = "1.0.0"
 authors = [{ name="losthread"}]
-description = "A CLI tool for scanning ports like nmap"
+description = "Link anonymous profiles using OSINT"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
@@ -13,11 +11,11 @@ classifiers = [
 ]
 license = { text = "MIT" }
 dependencies = [
-
+  "requests>=2.31.0",
 ]
 
 [project.scripts]
-pscan = "app.cli:main"
+recon = "app.main:main"
 
 [build-system]
 requires = ["hatchling>=1.26"]
