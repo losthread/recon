@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from .fetchers.reddit import fetch_reddit_user_details, fetch_reddit_user_posts, fetch_reddit_user_comments
+from .fetchers.github import fetch_github_user_details
 
 CYAN = "\033[36m"
 RESET = "\033[0m"
@@ -29,7 +30,8 @@ def main():
   reddit_user = fetch_reddit_user_details(username=args.username)
   reddit_user_posts = fetch_reddit_user_posts(username=args.username)
   reddit_user_comments = fetch_reddit_user_comments(username=args.username)
-  print(reddit_user_comments)
 
+  # fetch github
+  github_user = fetch_github_user_details(args.username)
 if __name__ == '__main__':
   main()
