@@ -11,9 +11,13 @@ def fetch_reddit_user_details(username: str) -> RedditProfile:
   # querystring params
   params = {'author': username}
   
-  # raise error if occured when fetching
-  response = requests.get(URL, params=params)
-  response.raise_for_status()
+  try:
+    # raise error if occured when fetching
+    response = requests.get(URL, params=params)
+    response.raise_for_status()
+  # catch any http error  
+  except requests.exceptions.HTTPError:
+    return None
   
   # convert json to dict
   data = response.json().get("data", [])
@@ -42,12 +46,18 @@ def fetch_reddit_user_posts(username: str, limit: int = 100) -> list[RedditPost]
     'sort': 'desc'
   }
   
-  # raise error if occured when fetching
-  response = requests.get(URL, params=params)
-  response.raise_for_status()
+  try:
+    # raise error if occured when fetching
+    response = requests.get(URL, params=params)
+    response.raise_for_status()
+  except requests.exceptions.HTTPError:
+    return None
   
   # convert json to dict
   data = response.json().get("data", [])
+
+  if not data:
+    return None
 
   posts = list()
   for post in data:
@@ -71,12 +81,18 @@ def fetch_reddit_user_comments(username: str, limit: int = 100) -> list[RedditCo
     'sort': 'desc',
   }
 
-  # raise error if occrued
-  response = requests.get(URL, params=params)
-  response.raise_for_status()
+  try:
+    # raise error if occrued
+    response = requests.get(URL, params=params)
+    response.raise_for_status()
+  except requests.exceptions.HTTPError:
+    return None
 
   # convert json to dict
   data = response.json().get("data", [])
+
+  if not data:
+    return None
 
   comments = list()
   for comment in data:
