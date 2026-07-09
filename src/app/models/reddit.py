@@ -10,8 +10,15 @@ class RedditProfile:
 
 @dataclass
 class RedditPost:
-  id: int
+  id: str
   title: str
+  body: str
+  subreddit: str
+  created_utc: int # unix time int
+
+@dataclass
+class RedditComment:
+  id: str
   body: str
   subreddit: str
   created_utc: int # unix time int
