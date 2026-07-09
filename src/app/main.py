@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from .fetchers.reddit import fetch_reddit_user_details, fetch_reddit_user_posts, fetch_reddit_user_comments
 from .fetchers.github import fetch_github_user_details
+from .fetchers.mastodon import fetch_mastodon_user_details, fetch_mastodon_user_statuses
 
 CYAN = "\033[36m"
 RESET = "\033[0m"
@@ -33,5 +34,11 @@ def main():
 
   # fetch github
   github_user = fetch_github_user_details(args.username)
+
+  # fetch mastodon
+  mastodon_user = fetch_mastodon_user_details(args.username)
+  mastodon_user_posts = fetch_mastodon_user_statuses(args.username)
+  print(mastodon_user_posts)
+
 if __name__ == '__main__':
   main()
