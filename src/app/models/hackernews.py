@@ -4,7 +4,7 @@ from dataclasses import dataclass
 class HackernewsProfile:
   username: str
   karma: int
-  created_at: int
+  created_utc: int # convert iso to utc unix time
   bio: str
 
 @dataclass
@@ -12,4 +12,4 @@ class HackernewsPost:
   id: int
   title: str
   url: str
-  created_at: int
+  created_utc: int # convert iso to utc unix time

@@ -11,11 +11,11 @@ class MastodonProfile:
   followers: int
   following: int
   posts: int
-  created_at: str # iso format
+  created_utc: int # convert iso to utc unix time
 
 @dataclass
 class MastodonPost:
   id: str
   content: str
-  created_at: str
+  created_utc: int # convert iso to utc unix time
   replies_count: int

@@ -15,4 +15,4 @@ class GithubProfile:
   blog: str
   email: str
   twitter_username: str
-  created_at: str
+  created_utc: int # convert iso to utc unix time
