@@ -1,5 +1,6 @@
 import requests
 from ..models.reddit import RedditProfile, RedditPost, RedditComment
+from ..utils.common import USER_AGENT, assemble_profile
 # using arctic shift to fetch reddit data
 # it is a community archive and doesnt need auth
 
@@ -13,7 +14,7 @@ def fetch_reddit_user_details(username: str) -> RedditProfile:
   
   try:
     # raise error if occured when fetching
-    response = requests.get(URL, params=params)
+    response = requests.get(URL, params=params, headers={"User-Agent": USER_AGENT})
     response.raise_for_status()
   # catch any http error  
   except requests.exceptions.HTTPError:
@@ -36,7 +37,7 @@ def fetch_reddit_user_details(username: str) -> RedditProfile:
     posts=meta.get("num_posts", 0),
   )
 
-# fetch user's top 100 posts
+# fetch user's recent 100 posts
 def fetch_reddit_user_posts(username: str, limit: int = 100) -> list[RedditPost]:
   URL = f'{BASE_URL}/posts/search'
   # querystring params
@@ -48,7 +49,7 @@ def fetch_reddit_user_posts(username: str, limit: int = 100) -> list[RedditPost]
   
   try:
     # raise error if occured when fetching
-    response = requests.get(URL, params=params)
+    response = requests.get(URL, params=params, headers={"User-Agent": USER_AGENT})
     response.raise_for_status()
   except requests.exceptions.HTTPError:
     return None
@@ -71,7 +72,7 @@ def fetch_reddit_user_posts(username: str, limit: int = 100) -> list[RedditPost]
   
   return posts
 
-# fetch user's top 100 comments 
+# fetch user's recent 100 comments 
 def fetch_reddit_user_comments(username: str, limit: int = 100) -> list[RedditComment]:
   URL = f'{BASE_URL}/comments/search'
   # querystring params
@@ -83,7 +84,7 @@ def fetch_reddit_user_comments(username: str, limit: int = 100) -> list[RedditCo
 
   try:
     # raise error if occrued
-    response = requests.get(URL, params=params)
+    response = requests.get(URL, params=params, headers={"User-Agent": USER_AGENT})
     response.raise_for_status()
   except requests.exceptions.HTTPError:
     return None
@@ -104,3 +105,23 @@ def fetch_reddit_user_comments(username: str, limit: int = 100) -> list[RedditCo
     ))
 
   return comments
+
+# fetch profile, posts, commenst and assemble it
+def fetch_and_assemble_reddit(username: str):
+  reddit_user = fetch_reddit_user_details(username)
+  if not reddit_user:
+    return None
+  
+  reddit_user_posts = fetch_reddit_user_posts(username) or []
+  reddit_user_comments = fetch_reddit_user_comments(username) or []
+
+  all_items = reddit_user_posts + reddit_user_comments
+  
+  return assemble_profile(
+    base={
+      'platform': 'reddit',
+      'username': reddit_user.username,
+      'profile_url': f'https://reddit.com/user/{reddit_user.username}',
+    },
+    items=all_items
+  )

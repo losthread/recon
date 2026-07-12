@@ -1,5 +1,6 @@
 import requests
 from ..models.hackernews import HackernewsProfile, HackernewsPost
+from ..utils.common import USER_AGENT, assemble_profile
 
 # fetch user profile and karma
 def fetch_hackernews_user(username: str):
@@ -7,7 +8,7 @@ def fetch_hackernews_user(username: str):
   
   try:
     # raise error if occured when fetching
-    response = requests.get(url)
+    response = requests.get(url, headers={"User-Agent": USER_AGENT})
     response.raise_for_status()
   except requests.exceptions.HTTPError:
     return None
@@ -18,7 +19,7 @@ def fetch_hackernews_user(username: str):
   return HackernewsProfile(
     username=user.get("id"),
     karma=user.get("karma"),
-    created_at=user.get("created"),
+    created_utc=user.get("created"),
     bio=user.get("about"),
   )
 
@@ -28,7 +29,7 @@ def fetch_hackernews_user_posts(username: str, limit: int = 10):
   
   try:
     # raise error if occured when fetching
-    response = requests.get(url)
+    response = requests.get(url, headers={"User-Agent": USER_AGENT})
     response.raise_for_status()
   except requests.exceptions.HTTPError:
     return []
@@ -50,9 +51,25 @@ def fetch_hackernews_user_posts(username: str, limit: int = 10):
         id=post.get("id"),
         title=post.get("title"),
         url=post.get("url"),
-        created_at=post.get("time"),
+        created_utc=post.get("time"),
       ))
     except:
       continue
   
   return posts
+
+def fetch_and_assemble_hackernews(username: str):
+  hackernews_user = fetch_hackernews_user(username)
+  if not hackernews_user:
+    return None
+
+  hackernews_user_posts = fetch_hackernews_user_posts(username) or []
+
+  return assemble_profile(
+    base={
+      'platform': 'hackernews',
+      'username': hackernews_user.username,
+      'profile_url': f'https://news.ycombinator.com/user?id={hackernews_user.username}'
+    },
+    items=hackernews_user_posts
+  )

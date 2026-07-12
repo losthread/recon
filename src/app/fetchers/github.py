@@ -1,5 +1,6 @@
 import requests
 from ..models.github import GithubProfile
+from ..utils.common import iso_to_utc, USER_AGENT, assemble_profile
 
 BASE_URL = "https://api.github.com"
 
@@ -7,7 +8,7 @@ BASE_URL = "https://api.github.com"
 def fetch_github_user_details(username: str) -> GithubProfile:
   try:
     # raise error if occured when fetching
-    response = requests.get(f'{BASE_URL}/users/{username}')
+    response = requests.get(f'{BASE_URL}/users/{username}', headers={"User-Agent": USER_AGENT})
     response.raise_for_status()
   except requests.exceptions.HTTPError:
     return None
@@ -29,5 +30,19 @@ def fetch_github_user_details(username: str) -> GithubProfile:
     blog=user.get("blog"),
     email=user.get("email"),
     twitter_username=user.get("twitter_username"),
-    created_at=user.get("created_at"),
+    created_utc=iso_to_utc(user.get("created_at")),
+  )
+
+def fetch_and_assemble_github(username: str):
+  github_user = fetch_github_user_details(username)
+  if not github_user:
+    return None
+
+  return assemble_profile(
+    base={
+      'platform': 'github',
+      'username': github_user.username,
+      'profile_url': github_user.profile_url,
+    },
+    items=[]
   )

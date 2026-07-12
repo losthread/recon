@@ -1,8 +1,8 @@
 from argparse import ArgumentParser
-from .fetchers.reddit import fetch_reddit_user_details, fetch_reddit_user_posts, fetch_reddit_user_comments
-from .fetchers.github import fetch_github_user_details
-from .fetchers.mastodon import fetch_mastodon_user_details, fetch_mastodon_user_statuses
-from .fetchers.hackernews import fetch_hackernews_user, fetch_hackernews_user_posts
+from .fetchers.reddit import fetch_and_assemble_reddit
+from .fetchers.github import fetch_and_assemble_github
+from .fetchers.mastodon import fetch_and_assemble_mastodon
+from .fetchers.hackernews import fetch_and_assemble_hackernews
 
 CYAN = "\033[36m"
 RESET = "\033[0m"
@@ -29,20 +29,22 @@ def main():
   args = parser.parse_args()
 
   # fetch reddit
-  reddit_user = fetch_reddit_user_details(username=args.username)
-  reddit_user_posts = fetch_reddit_user_posts(username=args.username)
-  reddit_user_comments = fetch_reddit_user_comments(username=args.username)
+  # reddit_profile = fetch_and_assemble_reddit(args.username)
 
   # fetch github
-  github_user = fetch_github_user_details(args.username)
+  # github_profile = fetch_and_assemble_github(args.username)
 
   # fetch mastodon
-  mastodon_user = fetch_mastodon_user_details(args.username)
-  mastodon_user_posts = fetch_mastodon_user_statuses(args.username)
+  # mastodon_profile = fetch_and_assemble_mastodon(args.username)
 
   # fetch hackernews
-  hackernews_user = fetch_hackernews_user(args.username)
-  hackernews_user_posts = fetch_hackernews_user_posts(args.username)
+  hackernews_profile = fetch_and_assemble_hackernews(args.username)
+
+  # print(reddit_profile)
+  print()
+
+  print(hackernews_profile)
+  print()
 
 if __name__ == '__main__':
   main()
