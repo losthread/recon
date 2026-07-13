@@ -47,10 +47,14 @@ def fetch_reddit_user_posts(username: str, limit: int = 100) -> list[RedditPost]
     'sort': 'desc'
   }
   
+  # profile url
+  url = f"https://www.reddit.com/user/{username}/"
+
   try:
     # raise error if occured when fetching
     response = requests.get(URL, params=params, headers={"User-Agent": USER_AGENT})
     response.raise_for_status()
+
   except requests.exceptions.HTTPError:
     return None
   

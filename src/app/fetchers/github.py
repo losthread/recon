@@ -10,11 +10,16 @@ def fetch_github_user_details(username: str) -> GithubProfile:
     # raise error if occured when fetching
     response = requests.get(f'{BASE_URL}/users/{username}', headers={"User-Agent": USER_AGENT})
     response.raise_for_status()
+
+    # fetch socials
+    socials = requests.get(f'{BASE_URL}/users/{username}/social_accounts', headers={"User-Agent": USER_AGENT})
+
   except requests.exceptions.HTTPError:
     return None
 
   # convert json to dict
   user = response.json()
+  socials_data = socials.json()
 
   return GithubProfile(
     username=user.get("login"),
@@ -29,7 +34,7 @@ def fetch_github_user_details(username: str) -> GithubProfile:
     company=user.get("company"),
     blog=user.get("blog"),
     email=user.get("email"),
-    twitter_username=user.get("twitter_username"),
+    social_accounts=socials_data,
     created_utc=iso_to_utc(user.get("created_at")),
   )
 

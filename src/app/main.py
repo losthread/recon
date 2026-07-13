@@ -1,8 +1,5 @@
 from argparse import ArgumentParser
-from .fetchers.reddit import fetch_and_assemble_reddit
-from .fetchers.github import fetch_and_assemble_github
-from .fetchers.mastodon import fetch_and_assemble_mastodon
-from .fetchers.hackernews import fetch_and_assemble_hackernews
+from .core.linker import find_relations
 
 CYAN = "\033[36m"
 RESET = "\033[0m"
@@ -28,23 +25,7 @@ def main():
 
   args = parser.parse_args()
 
-  # fetch reddit
-  # reddit_profile = fetch_and_assemble_reddit(args.username)
-
-  # fetch github
-  # github_profile = fetch_and_assemble_github(args.username)
-
-  # fetch mastodon
-  # mastodon_profile = fetch_and_assemble_mastodon(args.username)
-
-  # fetch hackernews
-  hackernews_profile = fetch_and_assemble_hackernews(args.username)
-
-  # print(reddit_profile)
-  print()
-
-  print(hackernews_profile)
-  print()
+  find_relations(args.username)
 
 if __name__ == '__main__':
   main()
