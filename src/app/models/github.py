@@ -14,5 +14,6 @@ class GithubProfile:
   company: str
   blog: str
   email: str
-  socials: list[dict]
+  social_accounts: list[dict]
+  readme: str
   created_utc: int # convert iso to utc unix time

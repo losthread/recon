@@ -11,6 +11,7 @@ class MastodonProfile:
   followers: int
   following: int
   posts: int
+  fields: str
   created_utc: int # convert iso to utc unix time
 
 @dataclass
