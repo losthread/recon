@@ -125,6 +125,10 @@ def fetch_and_assemble_reddit(username: str):
     base={
       'platform': 'reddit',
       'username': reddit_user.username,
+      'id': reddit_user.id,
+      'karma': reddit_user.karma,
+      'comments': reddit_user.comments,
+      'posts': reddit_user.posts,
       'profile_url': f'https://reddit.com/user/{reddit_user.username}',
     },
     items=all_items

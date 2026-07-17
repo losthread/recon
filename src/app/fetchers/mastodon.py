@@ -8,7 +8,7 @@ BASE_URL = "https://mastodon.social/api/v1"
 def fetch_mastodon_user_details(username: str) -> MastodonProfile:
   # querystring params
   params = {
-    'acct': username
+    'acct': f'{username}@mastodon.social'
   }
 
   try:
@@ -21,6 +21,9 @@ def fetch_mastodon_user_details(username: str) -> MastodonProfile:
   # convert json to dict
   user = response.json()
 
+  fields = user.get('fields', [])
+  fields_text = ' '.join([f.get('value', '') for f in fields])
+
   return MastodonProfile(
     id=user.get('id'),
     username=user.get('username'),
@@ -31,6 +34,7 @@ def fetch_mastodon_user_details(username: str) -> MastodonProfile:
     followers=user.get('followers_count', 0),
     following=user.get('following_count', 0),
     posts=user.get('statuses_count', 0),
+    fields=fields_text,
     created_utc=iso_to_utc(user.get('created_at')),
   )
 
@@ -73,6 +77,15 @@ def fetch_and_assemble_mastodon(username: str):
       'platform': 'mastodon',
       'username': mastodon_user.username,
       'profile_url': mastodon_user.url,
+      'id': mastodon_user.id,
+      'name': mastodon_user.name,
+      'bio': mastodon_user.bio,
+      'avatar_url': mastodon_user.avatar_url,
+      'followers': mastodon_user.followers,
+      'following': mastodon_user.following,
+      'posts': mastodon_user.posts,
+      'fields': mastodon_user.fields,
+      'created_utc': mastodon_user.created_utc,
     },
     items=mastodon_user_posts
   )

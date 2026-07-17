@@ -15,6 +15,9 @@ def fetch_hackernews_user(username: str):
   
   # convert json to dict
   user = response.json()
+
+  if user is None:
+    return None
   
   return HackernewsProfile(
     username=user.get("id"),
@@ -69,6 +72,9 @@ def fetch_and_assemble_hackernews(username: str):
     base={
       'platform': 'hackernews',
       'username': hackernews_user.username,
+      'karma': hackernews_user.karma,
+      'bio': hackernews_user.bio,
+      'created_utc': hackernews_user.created_utc,
       'profile_url': f'https://news.ycombinator.com/user?id={hackernews_user.username}'
     },
     items=hackernews_user_posts
