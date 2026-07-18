@@ -1,17 +1,18 @@
 from argparse import ArgumentParser
-from .core.linker import find_relations
+from .core.linker import heuristics
+from colorama import Fore
 
 CYAN = "\033[36m"
 RESET = "\033[0m"
 
-banner = f"""{CYAN}
+banner = f"""{Fore.CYAN}
  _____  ______ _____ ____  _   _ 
 |  __ \|  ____/ ____/ __ \| \ | |
 | |__) | |__ | |   | |  | |  \| |
 |  _  /|  __|| |   | |  | | . ` |
 | | \ \| |___| |___| |__| | |\  |
 |_|  \_\______\_____\____/|_| \_|
-{RESET}"""
+{Fore.RESET}"""
 
 print(banner)
 
@@ -21,11 +22,11 @@ parser = ArgumentParser()
 def main():
   parser.add_argument('-u', '--username', help='Username to search')
   parser.add_argument('-e', '--email', help='Email (optional)')
-  parser.add_argument('-n', '--name', help='Name (optional)')
 
   args = parser.parse_args()
 
-  find_relations(args.username)
+  prof = heuristics(args.username)
+  print(prof)
 
 if __name__ == '__main__':
   main()
