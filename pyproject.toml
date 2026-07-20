@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.scripts]
-recon = "app.main:main"
+recon = "app.main:cli"
 
 [build-system]
 requires = ["setuptools>=45", "wheel"]
