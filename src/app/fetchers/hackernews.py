@@ -1,16 +1,18 @@
-import requests
 from ..models.hackernews import HackernewsProfile, HackernewsPost
-from ..utils.common import USER_AGENT, assemble_profile
+from ..utils.common import assemble_profile
+from ..core.client import client
+import asyncio
+import httpx
 
 # fetch user profile and karma
-def fetch_hackernews_user(username: str):
+async def fetch_hackernews_user(username: str):
   url = f"https://hacker-news.firebaseio.com/v0/user/{username}.json"
   
   try:
     # raise error if occured when fetching
-    response = requests.get(url, headers={"User-Agent": USER_AGENT})
+    response = await client.get(url)
     response.raise_for_status()
-  except requests.exceptions.HTTPError:
+  except httpx.HTTPError:
     return None
   
   # convert json to dict
@@ -27,14 +29,14 @@ def fetch_hackernews_user(username: str):
   )
 
 # fetch user's posts (submissions)
-def fetch_hackernews_user_posts(username: str, limit: int = 10):
+async def fetch_hackernews_user_posts(username: str, limit: int = 10):
   url = f"https://hacker-news.firebaseio.com/v0/user/{username}.json"
   
   try:
     # raise error if occured when fetching
-    response = requests.get(url, headers={"User-Agent": USER_AGENT})
+    response = await client.get(url)
     response.raise_for_status()
-  except requests.exceptions.HTTPError:
+  except httpx.HTTPError:
     return []
   
   # convert json to dict
@@ -47,7 +49,7 @@ def fetch_hackernews_user_posts(username: str, limit: int = 10):
     post_url = f"https://hacker-news.firebaseio.com/v0/item/{post_id}.json"
     try:
       # fetch individual post
-      post_response = requests.get(post_url)
+      post_response = await client.get(post_url)
       post_response.raise_for_status()
       post = post_response.json()
       posts.append(HackernewsPost(
@@ -56,17 +58,21 @@ def fetch_hackernews_user_posts(username: str, limit: int = 10):
         url=post.get("url"),
         created_utc=post.get("time"),
       ))
-    except:
+    except Exception:
       continue
   
   return posts
 
-def fetch_and_assemble_hackernews(username: str):
-  hackernews_user = fetch_hackernews_user(username)
+async def fetch_and_assemble_hackernews(username: str):
+  hackernews_user, hackernews_user_posts = await asyncio.gather(
+    fetch_hackernews_user(username),
+    fetch_hackernews_user_posts(username)
+  )
+
+  hackernews_user_posts = hackernews_user_posts or []
+
   if not hackernews_user:
     return None
-
-  hackernews_user_posts = fetch_hackernews_user_posts(username) or []
 
   return assemble_profile(
     base={

@@ -1,9 +1,12 @@
-import requests
-  # Proton exposes an availability API used by their web account app.
+from ..core.client import client
+import httpx
 
-  # - Code 12106: username exists (taken)
-  # - Code 1000: username does not exist (available)
-def check_protonmail_username(username: str) -> bool:
+# Proton exposes an availability API used by their web account app.
+
+# - Code 12106: username exists (taken)
+# - Code 1000: username does not exist (available)
+
+async def check_protonmail_username(username: str) -> bool:
   url = (
     "https://account.proton.me/api/core/v4/users/available"
     f"?Name={username}%40proton.me&ParseDomain=1"
@@ -14,7 +17,14 @@ def check_protonmail_username(username: str) -> bool:
   }
   
   try:
-    response = requests.get(url, headers=headers)
+    response = await client.get(
+    url,
+    headers={
+      **client.headers,
+      "x-pm-appversion": "web-mail@6.0.1.3",
+      "Accept": "application/json",
+    }
+  )
     data = response.json()
     code = data.get("Code")
     
@@ -24,5 +34,5 @@ def check_protonmail_username(username: str) -> bool:
       return True   # Username available
     return None     # Unknown
   
-  except:
+  except httpx.HTTPError:
     return None

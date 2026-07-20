@@ -5,50 +5,58 @@ from ..fetchers.hackernews import fetch_and_assemble_hackernews
 from ..utils.patterns import USERNAME_PATTERNS, extract_social_handles
 from ..models.handle import SocialHandle
 from collections import Counter
+import asyncio
 import re
 
-def find_links(username: str):
-  reddit_profile = fetch_and_assemble_reddit(username)
-  github_profile = fetch_and_assemble_github(username)
-  mastodon_profile = fetch_and_assemble_mastodon(username)
-  hackernews_profile = fetch_and_assemble_hackernews(username)
+async def fetch_profiles(username: str):
+  return await asyncio.gather(
+      fetch_and_assemble_reddit(username),
+      fetch_and_assemble_github(username),
+      fetch_and_assemble_mastodon(username),
+      fetch_and_assemble_hackernews(username),
+  )
 
-  profiles = [reddit_profile, github_profile, mastodon_profile, hackernews_profile]
+async def find_links(username: str):
+  profiles = await fetch_profiles(username)
 
   # social links connected or mentioned on profiles
   social_links: list[SocialHandle] = []
 
-  # extract links from github
-  if github_profile:
-    # find explicit social links to profiles
-    if 'socials' in github_profile:
-      for account in github_profile['socials']:
-        url = account.get('url')
-        # get a standardized model (returns a list)
-        extracted = extract_social_handles(url)
-        social_links.extend(extracted)
+  for profile in profiles:
+    if not profile:
+      continue
 
-    # extract any links from the bio
-    if 'bio' in github_profile:
-      social_links.extend(extract_social_handles(github_profile.get('bio')))
+    # extract links from github
+    if profile.get('platform') == 'github':
+      # find explicit social links to profiles
+      if 'socials' in profile:
+        for account in profile['socials']:
+          url = account.get('url')
+          # get a standardized model (returns a list)
+          extracted = extract_social_handles(url)
+          social_links.extend(extracted)
 
-    # extract any links from the user's readme.md
-    if 'readme' in github_profile:
-      social_links.extend(extract_social_handles(github_profile.get('readme')))
+      # extract any links from the bio
+      if 'bio' in profile:
+        social_links.extend(extract_social_handles(profile.get('bio')))
 
-  # extract links from mastodon
-  if mastodon_profile:
-    # extract from bio
-    if 'bio' in mastodon_profile:
-      social_links.extend(extract_social_handles(mastodon_profile.get('bio')))
+      # extract any links from the user's readme.md
+      if 'readme' in profile:
+        social_links.extend(extract_social_handles(profile.get('readme')))
 
-    # extract from dedicated links section
-    if 'fields' in mastodon_profile:
-      social_links.extend(extract_social_handles(mastodon_profile.get('fields')))
+    # extract links from mastodon
+    if profile.get('platform') == 'mastodon':
+      # extract from bio
+      if 'bio' in profile:
+        social_links.extend(extract_social_handles(profile.get('bio')))
 
-  # extract links from hackernews 
-  if hackernews_profile and 'bio' in hackernews_profile:
-    social_links.extend(extract_social_handles(hackernews_profile.get('bio')))
+      # extract from dedicated links section
+      if 'fields' in profile:
+        social_links.extend(extract_social_handles(profile.get('fields')))
+
+    # extract links from hackernews 
+    if profile.get('platform') == 'hackernews' and 'bio' in profile:
+      social_links.extend(extract_social_handles(profile.get('bio')))
 
   # arctic shift does not provide social links connected to reddit
   # need to scrape the page manually (inside scrapers/)
@@ -86,8 +94,8 @@ def username_match(original: str, candidate: str) -> bool:
   return False
 
 # heuristics engine to find similarities between profiles
-def heuristics(username):
-  profiles, links = find_links(username)
+async def heuristics(username):
+  profiles, links = await find_links(username)
 
   # matched username platforms
   matched_platforms = list()

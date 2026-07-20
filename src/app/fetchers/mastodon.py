@@ -1,11 +1,13 @@
-import requests
 from ..models.mastodon import MastodonProfile, MastodonPost
-from ..utils.common import iso_to_utc, USER_AGENT, assemble_profile
+from ..utils.common import iso_to_utc, assemble_profile
+from ..core.client import client
+import asyncio
+import httpx
 
 BASE_URL = "https://mastodon.social/api/v1"
 
 # fetch user profile
-def fetch_mastodon_user_details(username: str) -> MastodonProfile:
+async def fetch_mastodon_user_details(username: str) -> MastodonProfile | None:
   # querystring params
   params = {
     'acct': f'{username}@mastodon.social'
@@ -13,9 +15,9 @@ def fetch_mastodon_user_details(username: str) -> MastodonProfile:
 
   try:
     # raise error if occured when fetching
-    response = requests.get(f'{BASE_URL}/accounts/lookup', params=params, headers={"User-Agent": USER_AGENT})
+    response = await client.get(f'{BASE_URL}/accounts/lookup', params=params)
     response.raise_for_status()
-  except requests.exceptions.HTTPError:
+  except httpx.HTTPError:
     return None
   
   # convert json to dict
@@ -40,18 +42,18 @@ def fetch_mastodon_user_details(username: str) -> MastodonProfile:
 
 # posts on mastodon are called statuses and comments are nested NOT SEPARATE
 # fetch statuses
-def fetch_mastodon_user_statuses(username: str, limit: int = 40) -> list[MastodonPost]:
+async def fetch_mastodon_user_statuses(username: str, limit: int = 40) -> list[MastodonPost]:
   try:
     # get user id (required for status searching endpoint)
-    user_lookup = requests.get(f'{BASE_URL}/accounts/lookup', params={'acct': username}, headers={"User-Agent": USER_AGENT})
+    user_lookup = await client.get(f'{BASE_URL}/accounts/lookup', params={'acct': username})
     user_lookup.raise_for_status()
     user_id = user_lookup.json()['id']
 
     # get their statuses(posts)
-    response = requests.get(f'{BASE_URL}/accounts/{user_id}/statuses', params={'limit': limit}, headers={"User-Agent": USER_AGENT})
+    response = await client.get(f'{BASE_URL}/accounts/{user_id}/statuses', params={'limit': limit})
     response.raise_for_status()
 
-  except requests.exceptions.HTTPError:
+  except httpx.HTTPError:
     return []
   
   posts = list()
@@ -65,12 +67,16 @@ def fetch_mastodon_user_statuses(username: str, limit: int = 40) -> list[Mastodo
 
   return posts
 
-def fetch_and_assemble_mastodon(username: str):
-  mastodon_user = fetch_mastodon_user_details(username)
+async def fetch_and_assemble_mastodon(username: str):
+  mastodon_user, mastodon_user_posts = await asyncio.gather(
+    fetch_mastodon_user_details(username),
+    fetch_mastodon_user_statuses(username)
+  )
+
   if not mastodon_user:
     return None
-
-  mastodon_user_posts = fetch_mastodon_user_statuses(username) or []
+  
+  mastodon_user_posts = mastodon_user_posts or []
 
   return assemble_profile(
     base={

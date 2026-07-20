@@ -1,42 +1,50 @@
-import requests
 from ..models.github import GithubProfile
-from ..utils.common import iso_to_utc, USER_AGENT, assemble_profile
+from ..utils.common import iso_to_utc, assemble_profile
+from ..core.client import client
+import httpx
+import asyncio
 
 BASE_URL = "https://api.github.com"
 
 # fetch user profile
-def fetch_github_user_details(username: str) -> GithubProfile:
-  # fetch profile
+async def fetch_github_user(username: str) -> dict | None:
   try:
-    response = requests.get(f'{BASE_URL}/users/{username}', headers={"User-Agent": USER_AGENT})
+    response = await client.get(f"{BASE_URL}/users/{username}")
     response.raise_for_status()
-  except requests.exceptions.HTTPError:
+    return response.json()
+  except httpx.HTTPError:
     return None
 
-  # fetch social links conected explicitly
-  socials_data = []
-  try:
-    socials = requests.get(f'{BASE_URL}/users/{username}/social_accounts', headers={"User-Agent": USER_AGENT})
-    socials.raise_for_status()
-    socials_data = socials.json()
-  except requests.exceptions.HTTPError:
-    pass  # Optional
 
-  # fetch social links from readme
-  readme_text = ""
+async def fetch_github_socials(username: str) -> list:
   try:
-    readme_response = requests.get(
-      f'{BASE_URL}/repos/{username}/{username}/readme',
-      headers={'User-Agent': USER_AGENT, 'Accept': 'application/vnd.github.raw+json'}
+    response = await client.get(f"{BASE_URL}/users/{username}/social_accounts")
+    response.raise_for_status()
+    return response.json()
+  except httpx.HTTPError:
+    return []
+
+
+async def fetch_github_readme(username: str) -> str:
+  try:
+    response = await client.get(
+        f"{BASE_URL}/repos/{username}/{username}/readme",
+        headers={"Accept": "application/vnd.github.raw+json"},
     )
-    readme_response.raise_for_status()
-    readme_text = readme_response.text
-  except requests.exceptions.HTTPError:
-    pass # optional
+    response.raise_for_status()
+    return response.text
+  except httpx.HTTPError:
+    return ""
+    
+async def fetch_github_user_details(username: str) -> GithubProfile | None:
+  user, socials_data, readme_text = await asyncio.gather(
+    fetch_github_user(username),
+    fetch_github_socials(username),
+    fetch_github_readme(username),
+  )
 
-  # convert json to dict
-  user = response.json()
-  socials_data = socials.json()
+  if not user:
+    return None
 
   return GithubProfile(
     username=user.get("login"),
@@ -56,8 +64,8 @@ def fetch_github_user_details(username: str) -> GithubProfile:
     created_utc=iso_to_utc(user.get("created_at")),
   )
 
-def fetch_and_assemble_github(username: str):
-  github_user = fetch_github_user_details(username)
+async def fetch_and_assemble_github(username: str) -> dict | None:
+  github_user = await fetch_github_user_details(username)
   if not github_user:
     return None
 

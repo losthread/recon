@@ -1,23 +1,26 @@
-import requests
 from ..models.reddit import RedditProfile, RedditPost, RedditComment
-from ..utils.common import USER_AGENT, assemble_profile
+from ..utils.common import assemble_profile
+from ..core.client import client
+import asyncio
+import httpx
+
 # using arctic shift to fetch reddit data
 # it is a community archive and doesnt need auth
 
 BASE_URL = 'https://arctic-shift.photon-reddit.com/api'
 
 # fetch user metadata (bio, username)
-def fetch_reddit_user_details(username: str) -> RedditProfile:
+async def fetch_reddit_user_details(username: str) -> RedditProfile | None:
   URL = f'{BASE_URL}/users/search'
   # querystring params
   params = {'author': username}
   
   try:
     # raise error if occured when fetching
-    response = requests.get(URL, params=params, headers={"User-Agent": USER_AGENT})
+    response = await client.get(URL, params=params)
     response.raise_for_status()
   # catch any http error  
-  except requests.exceptions.HTTPError:
+  except httpx.HTTPError:
     return None
   
   # convert json to dict
@@ -38,7 +41,7 @@ def fetch_reddit_user_details(username: str) -> RedditProfile:
   )
 
 # fetch user's recent 100 posts
-def fetch_reddit_user_posts(username: str, limit: int = 100) -> list[RedditPost]:
+async def fetch_reddit_user_posts(username: str, limit: int = 100) -> list[RedditPost] | None:
   URL = f'{BASE_URL}/posts/search'
   # querystring params
   params = {
@@ -46,16 +49,13 @@ def fetch_reddit_user_posts(username: str, limit: int = 100) -> list[RedditPost]
     'limit': limit,
     'sort': 'desc'
   }
-  
-  # profile url
-  url = f"https://www.reddit.com/user/{username}/"
 
   try:
     # raise error if occured when fetching
-    response = requests.get(URL, params=params, headers={"User-Agent": USER_AGENT})
+    response = await client.get(URL, params=params)
     response.raise_for_status()
 
-  except requests.exceptions.HTTPError:
+  except httpx.HTTPError:
     return None
   
   # convert json to dict
@@ -77,7 +77,7 @@ def fetch_reddit_user_posts(username: str, limit: int = 100) -> list[RedditPost]
   return posts
 
 # fetch user's recent 100 comments 
-def fetch_reddit_user_comments(username: str, limit: int = 100) -> list[RedditComment]:
+async def fetch_reddit_user_comments(username: str, limit: int = 100) -> list[RedditComment] | None:
   URL = f'{BASE_URL}/comments/search'
   # querystring params
   params = {
@@ -88,9 +88,9 @@ def fetch_reddit_user_comments(username: str, limit: int = 100) -> list[RedditCo
 
   try:
     # raise error if occrued
-    response = requests.get(URL, params=params, headers={"User-Agent": USER_AGENT})
+    response = await client.get(URL, params=params)
     response.raise_for_status()
-  except requests.exceptions.HTTPError:
+  except httpx.HTTPError:
     return None
 
   # convert json to dict
@@ -110,14 +110,19 @@ def fetch_reddit_user_comments(username: str, limit: int = 100) -> list[RedditCo
 
   return comments
 
-# fetch profile, posts, commenst and assemble it
-def fetch_and_assemble_reddit(username: str):
-  reddit_user = fetch_reddit_user_details(username)
+# fetch profile, posts, comments and assemble it
+async def fetch_and_assemble_reddit(username: str) -> dict | None:
+  reddit_user, reddit_user_posts, reddit_user_comments = await asyncio.gather(
+    fetch_reddit_user_details(username),
+    fetch_reddit_user_posts(username),
+    fetch_reddit_user_comments(username)
+  )
+
   if not reddit_user:
     return None
   
-  reddit_user_posts = fetch_reddit_user_posts(username) or []
-  reddit_user_comments = fetch_reddit_user_comments(username) or []
+  reddit_user_posts = reddit_user_posts or []
+  reddit_user_comments = reddit_user_comments or []
 
   all_items = reddit_user_posts + reddit_user_comments
   
