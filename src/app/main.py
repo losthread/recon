@@ -7,7 +7,7 @@ import asyncio
 CYAN = "\033[36m"
 RESET = "\033[0m"
 
-banner = f"""{Fore.CYAN}
+banner = rf"""{Fore.CYAN}
  _____  ______ _____ ____  _   _ 
 |  __ \|  ____/ ____/ __ \| \ | |
 | |__) | |__ | |   | |  | |  \| |

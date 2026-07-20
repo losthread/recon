@@ -41,6 +41,10 @@ async def fetch_hackernews_user_posts(username: str, limit: int = 10):
   
   # convert json to dict
   user = response.json()
+
+  if user is None:
+    return []
+
   # get submission ids (limited to specified limit)
   submission_ids = user.get("submitted", [])[:limit]
   
