@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from .core.linker import heuristics
+from .core.linker import heuristics, fetch_profiles
 from rich.console import Console
 from colorama import Fore
 import asyncio
@@ -22,12 +22,36 @@ print(banner)
 parser = ArgumentParser()
 parser.add_argument('-u', '--username', help='Username to search')
 parser.add_argument('-e', '--email', help='Email (optional)')
+parser.add_argument('-s', '--scan-only', help='Only check if username exists on platforms', action='store_true')
 
 # instantiate console (for loading screen)
 console = Console()
 
+ALL_PLATFORMS = set(['reddit', 'github', 'mastodon', 'hackernews', 'discord'])
+
 async def main():
   args = parser.parse_args()
+
+  if args.scan_only:
+    ALL_PLATFORMS = {'reddit', 'github', 'mastodon', 'hackernews', 'discord'}
+
+    platforms = await fetch_profiles(args.username)
+    found_platforms = {}
+    for p in platforms:
+      if p:
+        found_platforms[p['platform']] = p
+
+    for platform in ALL_PLATFORMS:
+      if platform in found_platforms:
+        p = found_platforms[platform]
+        status = f"[green]✓[/green]"
+        username = p.get('username', '-')
+        url = p.get('profile_url', '-')
+        console.print(f"{status} {platform:<12} {username:<20} [green]found[/green] {url}")
+      else:
+        status = f"[red]✗[/red]"
+        console.print(f"{status} {platform:<12} [red]not found[/red]")
+    return 
 
   with console.status("[violet]Fetching profiles..."):
     prof = await heuristics(args.username)

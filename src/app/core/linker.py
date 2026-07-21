@@ -2,6 +2,7 @@ from ..fetchers.reddit import fetch_and_assemble_reddit
 from ..fetchers.github import fetch_and_assemble_github
 from ..fetchers.mastodon import fetch_and_assemble_mastodon
 from ..fetchers.hackernews import fetch_and_assemble_hackernews
+from ..fetchers.discord import fetch_discord_username
 from ..utils.patterns import USERNAME_PATTERNS, extract_social_handles
 from ..models.handle import SocialHandle
 from collections import Counter
@@ -10,10 +11,11 @@ import re
 
 async def fetch_profiles(username: str):
   return await asyncio.gather(
-      fetch_and_assemble_reddit(username),
-      fetch_and_assemble_github(username),
-      fetch_and_assemble_mastodon(username),
-      fetch_and_assemble_hackernews(username),
+    fetch_and_assemble_reddit(username),
+    fetch_and_assemble_github(username),
+    fetch_and_assemble_mastodon(username),
+    fetch_and_assemble_hackernews(username),
+    fetch_discord_username(username),
   )
 
 async def find_links(username: str):
