@@ -33,13 +33,11 @@ async def main():
   args = parser.parse_args()
 
   if args.scan_only:
-    ALL_PLATFORMS = {'reddit', 'github', 'mastodon', 'hackernews', 'discord'}
-
     platforms = await fetch_profiles(args.username)
     found_platforms = {}
     for p in platforms:
       if p:
-        found_platforms[p['platform']] = p
+        found_platforms[p.get('platform')] = p
 
     for platform in ALL_PLATFORMS:
       if platform in found_platforms:
