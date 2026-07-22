@@ -14,16 +14,6 @@ A Deterministic CLI OSINT tool to identify someone based on their public social 
 - Mastodon
 - Hacker News
 
-## Tech Stack
-
-- Python
-- httpx
-- asyncio
-- dataclasses
-- Rich
-- BeautifulSoup *(planned)*
-- LLM-based identity correlation *(planned)*
-
 ## Installation
 
 ### Clone the repository
@@ -54,7 +44,9 @@ Search by username:
 
 ```bash
 recon -u <username>
+recon -u <username> -s
 ```
+-s is scan-only, doesn't perform heuristics - only checks if the username exists on that platform
 
 ## Note
 Search by email support will be added in future

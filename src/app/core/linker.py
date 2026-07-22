@@ -89,6 +89,9 @@ async def find_links(username: str):
 
 # match usernames
 def username_match(original: str, candidate: str) -> bool:
+  if not candidate:
+    return False
+
   for pattern in USERNAME_PATTERNS:
     regex = pattern.format(username=re.escape(original))
     if re.match(regex, candidate, re.IGNORECASE):
@@ -118,7 +121,7 @@ async def heuristics(username):
     total_platforms += 1
 
     # matched usernames
-    if username_match(username, profile['username']):
+    if profile.get('username') and username_match(username, profile.get('username')):
       matched_platforms.append(profile['platform'])
 
     # extracted names
