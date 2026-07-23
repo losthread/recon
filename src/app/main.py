@@ -27,7 +27,7 @@ parser.add_argument('-s', '--scan-only', help='Only check if username exists on 
 # instantiate console (for loading screen)
 console = Console()
 
-ALL_PLATFORMS = set(['reddit', 'github', 'mastodon', 'hackernews', 'discord'])
+ALL_PLATFORMS = set(['reddit', 'github', 'mastodon', 'hackernews', 'discord', 'protonmail', 'leetcode'])
 
 async def main():
   args = parser.parse_args()

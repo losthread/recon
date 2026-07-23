@@ -1,5 +1,5 @@
 from ..models.reddit import RedditProfile, RedditPost, RedditComment
-from ..utils.common import assemble_profile
+from ..utils.common import assemble_profile, get_random_user_agent
 from ..core.client import client
 import asyncio
 import httpx
@@ -17,7 +17,11 @@ async def fetch_reddit_user_details(username: str) -> RedditProfile | None:
   
   try:
     # raise error if occured when fetching
-    response = await client.get(URL, params=params)
+    response = await client.get(
+      URL,
+      params=params,
+      headers={'User-Agent': get_random_user_agent()},
+    )
     response.raise_for_status()
   # catch any http error  
   except httpx.HTTPError:
@@ -52,7 +56,11 @@ async def fetch_reddit_user_posts(username: str, limit: int = 100) -> list[Reddi
 
   try:
     # raise error if occured when fetching
-    response = await client.get(URL, params=params)
+    response = await client.get(
+      URL,
+      params=params,
+      headers={'User-Agent': get_random_user_agent()},
+    )
     response.raise_for_status()
 
   except httpx.HTTPError:
@@ -88,7 +96,11 @@ async def fetch_reddit_user_comments(username: str, limit: int = 100) -> list[Re
 
   try:
     # raise error if occrued
-    response = await client.get(URL, params=params)
+    response = await client.get(
+      URL,
+      params=params,
+      headers={'User-Agent': get_random_user_agent()},
+    )
     response.raise_for_status()
   except httpx.HTTPError:
     return None

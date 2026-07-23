@@ -1,5 +1,5 @@
 from ..models.mastodon import MastodonProfile, MastodonPost
-from ..utils.common import iso_to_utc, assemble_profile
+from ..utils.common import iso_to_utc, assemble_profile, get_random_user_agent
 from ..core.client import client
 import asyncio
 import httpx
@@ -15,7 +15,11 @@ async def fetch_mastodon_user_details(username: str) -> MastodonProfile | None:
 
   try:
     # raise error if occured when fetching
-    response = await client.get(f'{BASE_URL}/accounts/lookup', params=params)
+    response = await client.get(
+      f'{BASE_URL}/accounts/lookup',
+      params=params,
+      headers={"User-Agent": get_random_user_agent()},
+    )
     response.raise_for_status()
   except httpx.HTTPError:
     return None
@@ -45,12 +49,20 @@ async def fetch_mastodon_user_details(username: str) -> MastodonProfile | None:
 async def fetch_mastodon_user_statuses(username: str, limit: int = 40) -> list[MastodonPost]:
   try:
     # get user id (required for status searching endpoint)
-    user_lookup = await client.get(f'{BASE_URL}/accounts/lookup', params={'acct': username})
+    user_lookup = await client.get(
+      f'{BASE_URL}/accounts/lookup',
+      params={'acct': username},
+      headers={"User-Agent": get_random_user_agent()},
+    )
     user_lookup.raise_for_status()
     user_id = user_lookup.json()['id']
 
     # get their statuses(posts)
-    response = await client.get(f'{BASE_URL}/accounts/{user_id}/statuses', params={'limit': limit})
+    response = await client.get(
+      f'{BASE_URL}/accounts/{user_id}/statuses',
+      params={'limit': limit},
+      headers={"User-Agent": get_random_user_agent()},
+    )
     response.raise_for_status()
 
   except httpx.HTTPError:

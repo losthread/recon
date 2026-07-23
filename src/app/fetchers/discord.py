@@ -1,4 +1,5 @@
 from ..core.client import client
+from ..utils.common import get_random_user_agent
 import httpx
 ### discord does not allow fetching a profile 
 # so we can only check if a user exists or not
@@ -8,6 +9,7 @@ URL = "https://discord.com/api/v9/unique-username/username-attempt-unauthed"
 
 async def fetch_discord_username(username: str):
   headers = {
+    "User-Agent": get_random_user_agent(),
     "authority": "discord.com",
     "accept": "/",
     "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",

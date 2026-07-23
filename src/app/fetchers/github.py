@@ -1,5 +1,5 @@
 from ..models.github import GithubProfile
-from ..utils.common import iso_to_utc, assemble_profile
+from ..utils.common import iso_to_utc, assemble_profile, get_random_user_agent
 from ..core.client import client
 import httpx
 import asyncio
@@ -9,7 +9,10 @@ BASE_URL = "https://api.github.com"
 # fetch user profile
 async def fetch_github_user(username: str) -> dict | None:
   try:
-    response = await client.get(f"{BASE_URL}/users/{username}")
+    response = await client.get(
+      f"{BASE_URL}/users/{username}",
+      headers={"User-Agent": get_random_user_agent()},
+    )
     response.raise_for_status()
     return response.json()
   except httpx.HTTPError:
@@ -18,7 +21,10 @@ async def fetch_github_user(username: str) -> dict | None:
 
 async def fetch_github_socials(username: str) -> list:
   try:
-    response = await client.get(f"{BASE_URL}/users/{username}/social_accounts")
+    response = await client.get(
+      f"{BASE_URL}/users/{username}/social_accounts",
+      headers={"User-Agent": get_random_user_agent()},
+    )
     response.raise_for_status()
     return response.json()
   except httpx.HTTPError:
@@ -29,7 +35,10 @@ async def fetch_github_readme(username: str) -> str:
   try:
     response = await client.get(
         f"{BASE_URL}/repos/{username}/{username}/readme",
-        headers={"Accept": "application/vnd.github.raw+json"},
+        headers={
+          "User-Agent": get_random_user_agent(),
+          "Accept": "application/vnd.github.raw+json",
+        },
     )
     response.raise_for_status()
     return response.text

@@ -4,3 +4,4 @@ LLM assisted confidence scoring engine
 Addional fetchers (APIs)
 Add scrapers and crawlers (beautifulsoup)
 Entitiy resolution (determining whether multiple profiles belong to the same person)
+Add cache DB

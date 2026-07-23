@@ -1,5 +1,5 @@
 from ..models.hackernews import HackernewsProfile, HackernewsPost
-from ..utils.common import assemble_profile
+from ..utils.common import assemble_profile, get_random_user_agent
 from ..core.client import client
 import asyncio
 import httpx
@@ -10,7 +10,7 @@ async def fetch_hackernews_user(username: str):
   
   try:
     # raise error if occured when fetching
-    response = await client.get(url)
+    response = await client.get(url, headers={"User-Agent": get_random_user_agent()})
     response.raise_for_status()
   except httpx.HTTPError:
     return None
@@ -34,7 +34,7 @@ async def fetch_hackernews_user_posts(username: str, limit: int = 10):
   
   try:
     # raise error if occured when fetching
-    response = await client.get(url)
+    response = await client.get(url, headers={"User-Agent": get_random_user_agent()})
     response.raise_for_status()
   except httpx.HTTPError:
     return []
@@ -53,7 +53,10 @@ async def fetch_hackernews_user_posts(username: str, limit: int = 10):
     post_url = f"https://hacker-news.firebaseio.com/v0/item/{post_id}.json"
     try:
       # fetch individual post
-      post_response = await client.get(post_url)
+      post_response = await client.get(
+        post_url,
+        headers={"User-Agent": get_random_user_agent()},
+      )
       post_response.raise_for_status()
       post = post_response.json()
       posts.append(HackernewsPost(

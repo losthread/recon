@@ -3,6 +3,8 @@ from ..fetchers.github import fetch_and_assemble_github
 from ..fetchers.mastodon import fetch_and_assemble_mastodon
 from ..fetchers.hackernews import fetch_and_assemble_hackernews
 from ..fetchers.discord import fetch_discord_username
+from ..fetchers.protonmail import check_protonmail_username
+from ..fetchers.leetcode import fetch_and_assemble_leetcode
 from ..utils.patterns import USERNAME_PATTERNS, extract_social_handles
 from ..models.handle import SocialHandle
 from collections import Counter
@@ -16,6 +18,8 @@ async def fetch_profiles(username: str):
     fetch_and_assemble_mastodon(username),
     fetch_and_assemble_hackernews(username),
     fetch_discord_username(username),
+    check_protonmail_username(username),
+    fetch_and_assemble_leetcode(username),
   )
 
 async def find_links(username: str):
